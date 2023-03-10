@@ -1,6 +1,15 @@
 
 <p align="center" style="font-weight: bold; font-size: 1.5em">@bit-about/context</p>
 <p align="center">
+<a href="https://www.npmjs.com/package/@bit-about/context"><img alt="" src="https://img.shields.io/npm/v/@bit-about/context.svg" /></a>
+<a href="https://bundlephobia.com/package/@bit-about/context"><img alt="Bundle size" src="https://img.shields.io/bundlephobia/minzip/@bit-about/context?label=size" /></a>
+</p>
+
+## Install
+
+```bash
+npm i @bit-about/context
+```
 
 ## Description
 
