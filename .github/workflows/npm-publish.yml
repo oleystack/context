@@ -17,8 +17,8 @@ jobs:
           node-version: 16
       - run: npm ci
       - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+        run: echo $GITHUB_REF_NAME
+        
 
 #   publish-npm:
 #     needs: build
