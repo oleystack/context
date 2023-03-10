@@ -32,19 +32,9 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com"'
           git add package.json
-          git commit -m "chore: bump version"
+          git commit -m "chore: change version"
           git push
-        
-#   publish-npm:
-#     needs: build
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
-#       - uses: actions/setup-node@v3
-#         with:
-#           node-version: 16
-#           registry-url: https://registry.npmjs.org/
-#       - run: npm ci
-#       - run: npm publish
-#         env:
-#           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+
