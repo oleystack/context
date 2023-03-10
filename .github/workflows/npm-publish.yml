@@ -28,6 +28,7 @@ jobs:
         with:
           version: ${{ steps.regex-match.outputs.group1 }}
       - name: Commit package changes
+        continue-on-error: true
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com"'
