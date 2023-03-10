@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: 'main'
       - uses: actions/setup-node@v3
         with:
           node-version: 16
@@ -19,11 +21,8 @@ jobs:
       - uses: actions-ecosystem/action-regex-match@v2
         id: regex-match
         with:
-          text: ${{  github.ref_name }}
+          text: ${{ github.ref_name }}
           regex: 'v(\d+.\d+.\d+)'
-      - name: Echo extracted title
-        run: |
-          echo ""
       - name: Update package.json version
         uses: jaywcjlove/github-action-package@main
         with:
@@ -34,9 +33,8 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com"'
           git add package.json
           git commit -m "chore: bump version"
-          git push origin main
+          git push
         
-
 #   publish-npm:
 #     needs: build
 #     runs-on: ubuntu-latest
