@@ -16,8 +16,14 @@ jobs:
         with:
           node-version: 16
       - run: npm ci
-      - name: Get the version
-        run: echo $GITHUB_REF_NAME
+      - uses: actions-ecosystem/action-regex-match@v2
+        id: regex-match
+        with:
+          text: $GITHUB_REF_NAME
+          regex: '^(v\d+.\d+.\d+)$'
+      - name: Echo extracted title
+        run: |
+          echo "${{ steps.regex-match.outputs.group1 }}"
         
 
 #   publish-npm:
