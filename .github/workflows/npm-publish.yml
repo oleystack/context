@@ -23,7 +23,18 @@ jobs:
           regex: 'v(\d+.\d+.\d+)'
       - name: Echo extracted title
         run: |
-          echo "${{ steps.regex-match.outputs.group1 }}"
+          echo ""
+      - name: Update package.json version
+        uses: jaywcjlove/github-action-package@main
+        with:
+          version: ${{ steps.regex-match.outputs.group1 }}
+      - name: Commit package changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com"'
+          git add package.json
+          git commit -m "chore: bump version"
+          git push
         
 
 #   publish-npm:
