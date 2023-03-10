@@ -16,6 +16,11 @@ jobs:
         with:
           node-version: 16
       - run: npm ci
+      - uses: "phips28/gh-action-bump-version@master"
+        with:
+          tag-prefix: 'v'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-npm:
     needs: build
