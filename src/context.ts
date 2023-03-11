@@ -1,4 +1,8 @@
 import * as React from 'react'
+import {
+  unstable_NormalPriority as NormalPriority,
+  unstable_runWithPriority as runWithPriority
+} from 'scheduler'
 
 const isDev = process.env.NODE_ENV !== 'production'
 
@@ -34,12 +38,19 @@ type Context<Value> = React.Context<Value> & {
   Consumer: never
 }
 
+type Listener<Value> = (
+  action: readonly [ContextVersion, Value]
+) => void
+
 type ContextValue<Value> = {
   /** Holds an actual value of React's context that will be propagated down for computations. */
   value: React.MutableRefObject<Value>
 
   /** A version field is used to sync a context value and consumers. */
   version: React.MutableRefObject<ContextVersion>
+
+  /** Holds updates listeners */
+  listeners: Set<Listener<Value>>
 }
 
 type ContextReducer<Value, SelectedValue> = React.Reducer<
@@ -53,7 +64,8 @@ const useIsomorphicLayoutEffect: typeof React.useEffect = canUseDOM()
   : React.useEffect
 
 const createProvider = <Value>(
-  Original: React.Provider<ContextValue<Value>>
+  Original: React.Provider<ContextValue<Value>>,
+  listeners: Set<Listener<Value>>
 ) => {
   const Provider: React.FC<React.ProviderProps<Value>> = (props) => {
     // Holds an actual "props.value"
@@ -63,18 +75,21 @@ const createProvider = <Value>(
     const versionRef = React.useRef(0)
 
     // A stable object, is used to avoid context updates via mutation of its values.
-    const contextValue = React.useRef<ContextValue<Value>>()
-
-    if (!contextValue.current) {
-      contextValue.current = {
-        value: valueRef,
-        version: versionRef
-      }
-    }
+    const contextValue = React.useRef<ContextValue<Value>>({
+      value: valueRef,
+      version: versionRef,
+      listeners
+    })
 
     useIsomorphicLayoutEffect(() => {
       valueRef.current = props.value
       versionRef.current += 1
+
+      runWithPriority(NormalPriority, () => {
+        contextValue.current!.listeners.forEach((listener) => {
+          listener([versionRef.current, props.value])
+        })
+      })
     }, [props.value])
 
     return React.createElement(
@@ -92,13 +107,14 @@ const createProvider = <Value>(
   return Provider as unknown as React.Provider<ContextValue<Value>>
 }
 
-export const createContext = <Value>(defaultValue: Value): Context<Value> => {
+export const createContext = <Value>(defaultValue: Value, listeners: Set<Listener<Value>> = new Set()): Context<Value> => {
   const context = React.createContext<ContextValue<Value>>({
     value: { current: defaultValue },
-    version: { current: -1 }
+    version: { current: -1 },
+    listeners
   })
 
-  context.Provider = createProvider<Value>(context.Provider)
+  context.Provider = createProvider<Value>(context.Provider, listeners)
 
   // We don't support Consumer API
   delete (context as unknown as Context<Value>).Consumer
@@ -116,7 +132,8 @@ export function useContextSelector<Value, SelectedValue>(
 
   const {
     value: { current: currentState },
-    version: { current: currentVersion }
+    version: { current: currentVersion },
+    listeners
   } = contextValue
 
   if (isDev && currentVersion === -1) {
@@ -193,6 +210,14 @@ export function useContextSelector<Value, SelectedValue>(
     // this is safe because it's self contained
     dispatch(undefined)
   }
+
+  // Update during providers gets new value from props
+  useIsomorphicLayoutEffect(() => {
+    listeners.add(dispatch);
+    return () => {
+      listeners.delete(dispatch);
+    };
+  }, [listeners]);
 
   return currentSelectedState
 }
