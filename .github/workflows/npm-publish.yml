@@ -10,28 +10,45 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: 'main'
       - uses: actions/setup-node@v3
         with:
           node-version: 16
       - run: npm ci
-      - uses: "phips28/gh-action-bump-version@master"
+      - uses: actions-ecosystem/action-regex-match@v2
+        id: regex-match
         with:
-          tag-prefix: 'v'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          text: ${{ github.ref_name }}
+          regex: 'v(\d+.\d+.\d+)'
+      - name: Update package.json version
+        uses: jaywcjlove/github-action-package@main
+        with:
+          version: ${{ steps.regex-match.outputs.group1 }}
+      - name: Commit package changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com"'
+          git add package.json
+          git commit -m "chore: change version"
+          git push
 
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: 'main'
       - uses: actions/setup-node@v3
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
       - run: npm ci
-      - run: npm publish
+      - run: npm run build
+      - run: npm publish --access=public
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
