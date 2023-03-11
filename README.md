@@ -30,13 +30,25 @@ interface State {
   bob: number;
 }
 
-const context = createContext<State>({
+const defaultValue: State = {
   alice: 1,
   bob: 2
-})
+}
+
+const Context = createContext<State>(defaultValue)
+
+const App = () => {
+  const [value] = useState(defaultValue)
+
+  return (
+    <Context.Provider value={value}>
+      <Component />
+    </Context.Provider>
+  )
+}
 
 const Component = () => {
-  const bob = useContextSelector(context, (state) => state.bob)
+  const bob = useContextSelector(Context, (state) => state.bob)
 
   return bob // returns "2"
 }
