@@ -37,15 +37,11 @@ const defaultValue: State = {
 
 const Context = createContext<State>(defaultValue)
 
-const App = () => {
-  const [value] = useState(defaultValue)
-
-  return (
-    <Context.Provider value={value}>
-      <Component />
-    </Context.Provider>
-  )
-}
+const App = () => (
+  <Context.Provider value={defaultValue}>
+    <Component />
+  </Context.Provider>
+)
 
 const Component = () => {
   const bob = useContextSelector(Context, (state) => state.bob)
